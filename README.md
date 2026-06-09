@@ -1,2 +1,3 @@
 # Cal_Vue
-Cal viewwidget for iCue XENEON
+Calendar view widget for iCue XENEON
+This will allow you to add .ics files for viewing
