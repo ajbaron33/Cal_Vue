@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="48" fill="#020706"/>
+  <path d="M64 78h128v114H64z" fill="none" stroke="#54ff28" stroke-width="12"/>
+  <path d="M64 104h128" stroke="#29ffc6" stroke-width="10"/>
+  <circle cx="98" cy="140" r="9" fill="#54ff28"/>
+  <circle cx="128" cy="140" r="9" fill="#54ff28"/>
+  <circle cx="158" cy="140" r="9" fill="#54ff28"/>
+  <text x="128" y="226" text-anchor="middle" font-size="36" font-family="Arial" font-weight="900" fill="#54ff28">CV</text>
+</svg>
