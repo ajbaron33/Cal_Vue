@@ -17,6 +17,7 @@ const DEFAULT_CALENDARS = [
 
 function App() {
   const [cursor, setCursor] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendars, setCalendars] = useState(loadSavedCalendars());
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState("Demo mode");
@@ -75,8 +76,8 @@ function App() {
   const days = buildMonth(cursor);
   const today = new Date();
 
-  const todayEvents = events
-    .filter((event) => sameDay(event.start, today))
+  const selectedEvents = events
+    .filter(event => sameDay(event.start, selectedDate))
     .sort((a, b) => a.start - b.start);
 
   const nextEvents = events
@@ -116,8 +117,10 @@ function App() {
                 className={[
                   "day",
                   !day.currentMonth ? "muted" : "",
-                  sameDay(day.date, today) ? "today" : ""
+                  sameDay(day.date, today) ? "today" : "",
+                  sameDay(day.date, selectedDate) ? "selected" : ""
                 ].join(" ")}
+                onClick={() => setSelectedDate(new Date(day.date))}
               >
                 <div className="dayNum">{day.date.getDate()}</div>
 
@@ -141,8 +144,14 @@ function App() {
       <section className="agendaPanel">
         <div className="agendaHeader">
           <div>
-            <div className="eyebrow">Cal_Vue</div>
-            <h2>Today</h2>
+            <div className="eyebrow">CalVue</div>
+            <h2>
+               {selectedDate.toLocaleDateString("default", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric"
+               })}
+            </h2>
             <p className="status">{status}</p>
           </div>
 
@@ -156,10 +165,10 @@ function App() {
         ) : (
           <>
             <div className="agendaList">
-              {todayEvents.length === 0 ? (
+              {selectedEvents.length === 0 ? (
                 <div className="emptyState">No events today</div>
               ) : (
-                todayEvents.map((event, index) => (
+                selectedEvents.map((event, index) => (
                   <EventCard event={event} key={index} />
                 ))
               )}

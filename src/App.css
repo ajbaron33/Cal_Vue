@@ -299,3 +299,16 @@ button {
 .settingsActions button {
   flex: 1;
 }
+.day {
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.day:hover {
+    transform: scale(1.03);
+}
+
+.day.selected {
+    outline: 2px solid #29ffc6;
+    box-shadow: 0 0 12px rgba(41,255,198,.45);
+}
