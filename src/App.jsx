@@ -3,16 +3,8 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 const DEFAULT_CALENDARS = [
-  {
-    name: "Demo Work",
-    url: "",
-    color: "#29ffc6"
-  },
-  {
-    name: "Demo Home",
-    url: "",
-    color: "#54ff28"
-  }
+  { name: "Demo Work", url: "", color: "#29ffc6" },
+  { name: "Demo Home", url: "", color: "#54ff28" }
 ];
 
 function App() {
@@ -43,8 +35,20 @@ function App() {
       const allEvents = [];
 
       for (const cal of activeCalendars) {
-        const res = await fetch(cal.url);
+        console.log("Loading calendar:", cal.name, cal.url);
+
+        const fixedUrl = cal.url.replace(/^webcal:/i, "https:");
+        const proxyUrl = `http://localhost:3030/ics?url=${encodeURIComponent(fixedUrl)}`;
+        const res = await fetch(proxyUrl);
+
+        console.log("Calendar response:", res.status, res.ok);
+
+        if (!res.ok) {
+          throw new Error(`Calendar failed: ${res.status}`);
+      }
+
         const text = await res.text();
+        console.log("ICS text preview:", text.slice(0, 120));
 
         const jcal = ICAL.parse(text);
         const comp = new ICAL.Component(jcal);
@@ -67,7 +71,7 @@ function App() {
       setEvents(allEvents);
       setStatus(`Loaded ${allEvents.length} events`);
     } catch (err) {
-      console.error(err);
+      console.error("Calendar load failed:", err);
       setEvents(makeDemoEvents());
       setStatus("Could not load ICS — showing demo events");
     }
@@ -77,7 +81,7 @@ function App() {
   const today = new Date();
 
   const selectedEvents = events
-    .filter(event => sameDay(event.start, selectedDate))
+    .filter((event) => sameDay(event.start, selectedDate))
     .sort((a, b) => a.start - b.start);
 
   const nextEvents = events
@@ -132,7 +136,7 @@ function App() {
                         background: event.color,
                         boxShadow: `0 0 8px ${event.color}`
                       }}
-                    ></span>
+                    />
                   ))}
                 </div>
               </div>
@@ -146,27 +150,36 @@ function App() {
           <div>
             <div className="eyebrow">CalVue</div>
             <h2>
-               {selectedDate.toLocaleDateString("default", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric"
-               })}
+              {selectedDate.toLocaleDateString("default", {
+                weekday: "long",
+                month: "long",
+                day: "numeric"
+              })}
             </h2>
             <p className="status">{status}</p>
           </div>
 
-          <button className="settingsBtn" onClick={() => setShowSettings(!showSettings)}>
+          <button
+            className="settingsBtn"
+            onClick={() => setShowSettings(!showSettings)}
+          >
             ⚙
           </button>
         </div>
 
         {showSettings ? (
-          <CalendarSettings calendars={calendars} onSave={loadEvents} />
+          <CalendarSettings
+            calendars={calendars}
+            onSave={() => {
+              setShowSettings(false);
+              loadEvents();
+            }}
+          />
         ) : (
           <>
             <div className="agendaList">
               {selectedEvents.length === 0 ? (
-                <div className="emptyState">No events today</div>
+                <div className="emptyState">No events this day</div>
               ) : (
                 selectedEvents.map((event, index) => (
                   <EventCard event={event} key={index} />
@@ -239,7 +252,13 @@ function CalendarSettings({ calendars, onSave }) {
   }
 
   function save() {
-    localStorage.setItem("cal_vue_calendars", JSON.stringify(items));
+    const cleaned = items.map((item) => ({
+      name: item.name?.trim() || "Untitled Calendar",
+      url: item.url?.trim() || "",
+      color: item.color?.trim() || "#29ffc6"
+    }));
+
+    localStorage.setItem("cal_vue_calendars", JSON.stringify(cleaned));
     onSave();
   }
 
