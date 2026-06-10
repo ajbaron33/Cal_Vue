@@ -312,3 +312,227 @@ button {
     outline: 2px solid #29ffc6;
     box-shadow: 0 0 12px rgba(41,255,198,.45);
 }
+/* Keep selected-day events visible; let upcoming scroll instead */
+.agendaList {
+  flex: 0 0 auto;
+  max-height: 46%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.nextBlock {
+  min-height: 0;
+  max-height: 58%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.agendaList::-webkit-scrollbar,
+.nextBlock::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-height: 720px) {
+  .agendaPanel {
+    gap: 6px;
+  }
+
+  .agendaHeader h2 {
+    font-size: 22px;
+  }
+
+  .status {
+    font-size: 10px;
+  }
+
+  .agendaList {
+    max-height: 32%;
+  }
+
+  .eventCard {
+    padding: 8px;
+  }
+
+  .eventTitle {
+    font-size: 14px;
+  }
+}
+
+/* Center CalVue title/header content */
+.agendaHeader {
+  position: relative;
+  text-align: center;
+  justify-content: center;
+}
+
+.agendaHeader > div {
+  width: 100%;
+}
+
+.settingsBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+/* ---------- Agenda Layout ---------- */
+
+.agendaHeader {
+  position: relative;
+  justify-content: center;
+  text-align: center;
+}
+
+.agendaHeader > div {
+  width: 100%;
+}
+
+.settingsBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+/* Selected day events stay visible */
+
+.agendaList {
+  flex: 0 0 auto;
+  max-height: 38%;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.agendaList::-webkit-scrollbar {
+  display: none;
+}
+
+/* Upcoming section */
+
+.nextBlock {
+  min-height: 0;
+  max-height: 58%;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  margin-top: 10px;
+}
+
+.nextBlock::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  opacity: .75;
+}
+
+/* ---------- Compact Upcoming Cards ---------- */
+
+.eventCard.compact {
+    padding: 3px 8px;
+    margin-bottom: 4px;
+    border-left-width: 2px;
+    border-radius: 8px;
+}
+
+.eventCard.compact .eventTitle {
+    font-size: 12px;
+    line-height: 1.05;
+    margin-bottom: 1px;
+    font-weight: 500;
+}
+
+.eventCard.compact .eventDate,
+.eventCard.compact .eventMeta {
+    font-size: 9px;
+    opacity: .6;
+    line-height: 1;
+}
+
+/* ---------- Small Displays ---------- */
+
+@media (max-height: 720px) {
+
+  .agendaPanel {
+    gap: 6px;
+  }
+
+  .agendaHeader h2 {
+    font-size: 22px;
+  }
+
+  .status {
+    font-size: 10px;
+  }
+
+  .agendaList {
+    max-height: 32%;
+  }
+
+  .eventCard {
+    padding: 8px;
+  }
+
+  .eventTitle {
+    font-size: 14px;
+  }
+}
+/* Final event sizing: selected day first, upcoming second */
+
+.agendaList {
+  flex: 0 0 auto;
+  max-height: 48%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.nextBlock {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.agendaList::-webkit-scrollbar,
+.nextBlock::-webkit-scrollbar {
+  display: none;
+}
+
+/* Same compact card size for selected-day and upcoming events */
+.eventCard,
+.eventCard.compact {
+  padding: 5px 8px;
+  margin-bottom: 5px;
+  border-left-width: 3px;
+  border-radius: 8px;
+}
+
+.eventCard .eventDate,
+.eventCard.compact .eventDate {
+  font-size: 10px;
+  margin-bottom: 2px;
+  opacity: 0.75;
+}
+
+.eventCard .eventTitle,
+.eventCard.compact .eventTitle {
+  font-size: 13px;
+  line-height: 1.15;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.eventCard .eventMeta,
+.eventCard.compact .eventMeta {
+  font-size: 10px;
+  opacity: 0.75;
+}
