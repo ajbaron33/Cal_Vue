@@ -15,15 +15,32 @@ app.get("/ics", async (req, res) => {
     }
 
     const safeUrl = target.replace(/^webcal:/i, "https:");
+    console.log("Fetching ICS:", safeUrl);
 
-    const response = await fetch(safeUrl);
+    const response = await fetch(safeUrl, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": "CalVue/0.1"
+      }
+    });
+
+    console.log("ICS response:", response.status, response.statusText);
+
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .send(`Upstream calendar error: ${response.status} ${response.statusText}`);
+    }
+
     const text = await response.text();
 
-    res.setHeader("Content-Type", "text/calendar");
+    console.log("ICS preview:", text.slice(0, 80));
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.send(text);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Failed to fetch calendar");
+    console.error("Proxy failed:", err);
+    res.status(500).send(`Failed to fetch calendar: ${err.message}`);
   }
 });
 

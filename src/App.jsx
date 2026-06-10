@@ -38,7 +38,7 @@ function App() {
         console.log("Loading calendar:", cal.name, cal.url);
 
         const fixedUrl = cal.url.replace(/^webcal:/i, "https:");
-        const proxyUrl = `http://localhost:3030/ics?url=${encodeURIComponent(fixedUrl)}`;
+        const proxyUrl = `/ics?url=${encodeURIComponent(fixedUrl)}`;
         const res = await fetch(proxyUrl);
 
         console.log("Calendar response:", res.status, res.ok);
