@@ -17,6 +17,13 @@ function App() {
 
   useEffect(() => {
     loadEvents();
+
+    const interval = setInterval(() => {
+      console.log("Refreshing calendars...");
+      loadEvents();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   async function loadEvents() {
@@ -24,32 +31,17 @@ function App() {
     setCalendars(saved);
 
     const activeCalendars = saved.filter((cal) => cal.url?.trim());
-
-    if (activeCalendars.length === 0) {
-      setEvents(makeDemoEvents());
-      setStatus("Demo mode — no ICS calendars saved");
-      return;
-    }
+    const allEvents = [];
 
     try {
-      const allEvents = [];
-
       for (const cal of activeCalendars) {
-        console.log("Loading calendar:", cal.name, cal.url);
-
         const fixedUrl = cal.url.replace(/^webcal:/i, "https:");
         const proxyUrl = `/ics?url=${encodeURIComponent(fixedUrl)}`;
         const res = await fetch(proxyUrl);
 
-        console.log("Calendar response:", res.status, res.ok);
-
-        if (!res.ok) {
-          throw new Error(`Calendar failed: ${res.status}`);
-      }
+        if (!res.ok) throw new Error(`Calendar failed: ${res.status}`);
 
         const text = await res.text();
-        console.log("ICS text preview:", text.slice(0, 120));
-
         const jcal = ICAL.parse(text);
         const comp = new ICAL.Component(jcal);
         const vevents = comp.getAllSubcomponents("vevent");
@@ -60,20 +52,52 @@ function App() {
           return {
             title: event.summary || "Untitled",
             start: event.startDate.toJSDate(),
+            end: event.endDate?.toJSDate?.() || event.startDate.toJSDate(),
             calendarName: cal.name,
-            color: normalizeColor(cal.color)
+            color: normalizeColor(cal.color),
+            source: "ICS"
           };
         });
 
         allEvents.push(...parsed);
       }
 
-      setEvents(allEvents);
-      setStatus(`Loaded ${allEvents.length} events`);
+      try {
+        const outlookRes = await fetch("/api/outlook/events");
+
+        if (outlookRes.ok) {
+          const outlookEvents = await outlookRes.json();
+
+          allEvents.push(
+            ...outlookEvents.map((event) => ({
+              id: `outlook-${event.id}`,
+              title: event.title || "Untitled Outlook Event",
+              start: new Date(event.start),
+              end: new Date(event.end),
+              location: event.location || "",
+              calendarName: "Outlook",
+              color: "#A2333B",
+              source: "Outlook",
+              allDay: Boolean(event.allDay)
+            }))
+          );
+        }
+      } catch (err) {
+        console.warn("Outlook calendar unavailable:", err);
+      }
+
+      allEvents.sort((a, b) => a.start - b.start);
+
+      setEvents(allEvents.length ? allEvents : makeDemoEvents());
+      setStatus(
+        allEvents.length
+          ? `Loaded ${allEvents.length} events`
+          : "Demo mode — no calendars loaded"
+      );
     } catch (err) {
       console.error("Calendar load failed:", err);
       setEvents(makeDemoEvents());
-      setStatus("Could not load ICS — showing demo events");
+      setStatus("Could not load calendars — showing demo events");
     }
   }
 
@@ -84,10 +108,12 @@ function App() {
     .filter((event) => sameDay(event.start, selectedDate))
     .sort((a, b) => a.start - b.start);
 
-  const nextEvents = events
-    .filter((event) => afterToday(event.start, today))
-    .sort((a, b) => a.start - b.start)
-    .slice(0, 4);
+  const nextDay = new Date(selectedDate);
+  nextDay.setDate(selectedDate.getDate() + 1);
+
+  const nextDayEvents = events
+    .filter((event) => sameDay(event.start, nextDay))
+    .sort((a, b) => a.start - b.start);
 
   return (
     <main className="shell">
@@ -188,10 +214,21 @@ function App() {
             </div>
 
             <div className="nextBlock">
-              <div className="sectionLabel">Next</div>
-              {nextEvents.map((event, index) => (
-                <EventCard event={event} compact key={index} />
-              ))}
+              <div className="sectionLabel">
+                {nextDay.toLocaleDateString("default", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </div>
+
+              {nextDayEvents.length === 0 ? (
+                <div className="emptyState">No events</div>
+              ) : (
+                nextDayEvents.map((event, index) => (
+                  <EventCard event={event} compact key={index} />
+                ))
+              )}
             </div>
           </>
         )}
@@ -206,22 +243,29 @@ function EventCard({ event, compact = false }) {
       className={compact ? "eventCard compact" : "eventCard"}
       style={{ borderLeftColor: event.color }}
     >
-      <div className="eventDate">
-        {event.start.toLocaleDateString("default", {
-          weekday: "short",
-          month: "short",
-          day: "numeric"
-        })}
-      </div>
+      {!compact && (
+        <div className="eventDate">
+          {event.start.toLocaleDateString("default", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      )}
+
       <div className="eventTitle">{event.title}</div>
+
       <div className="eventMeta">
         <span>
           {event.start.toLocaleTimeString("default", {
             hour: "numeric",
-            minute: "2-digit"
+            minute: "2-digit",
           })}
         </span>
-        <span style={{ color: event.color }}>{event.calendarName}</span>
+
+        <span style={{ color: event.color }}>
+          {event.calendarName}
+        </span>
       </div>
     </article>
   );
@@ -368,12 +412,6 @@ function sameDay(a, b) {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
-}
-
-function afterToday(a, b) {
-  const aa = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bb = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return aa > bb;
 }
 
 function addMonths(date, amount) {

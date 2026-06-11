@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execFile } from "child_process";
 
 const app = express();
 const PORT = process.env.PORT || 3030;
@@ -40,6 +41,44 @@ app.get("/ics", async (req, res) => {
     console.error("ICS proxy failed:", err);
     res.status(500).send(`Failed to fetch calendar: ${err.message}`);
   }
+});
+
+app.get("/icue-test", (req, res) => {
+  res.type("html").send(`
+    <!doctype html>
+    <html>
+      <body style="background:#111;color:#00ff99;font-family:Arial;padding:20px;">
+        <h1>iCUE Test Works</h1>
+      </body>
+    </html>
+  `);
+});
+
+app.get("/api/outlook/events", (req, res) => {
+  execFile(
+    "powershell.exe",
+    [
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "C:\\Apps\\Cal_Vue\\server\\outlook-events.ps1",
+    ],
+    { windowsHide: true },
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error("Outlook script error:", error, stderr);
+        return res.status(500).json({ error: "Failed to read Outlook events" });
+      }
+
+      try {
+        const events = stdout.trim() ? JSON.parse(stdout) : [];
+        res.json(Array.isArray(events) ? events : [events]);
+      } catch (err) {
+        console.error("Outlook JSON parse error:", err, stdout);
+        res.status(500).json({ error: "Failed to parse Outlook events" });
+      }
+    }
+  );
 });
 
 app.use(express.static(distPath));
