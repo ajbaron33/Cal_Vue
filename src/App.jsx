@@ -237,18 +237,18 @@ function App() {
   );
 }
 
-function EventCard({ event, compact = false }) {
+function EventCard({ event, compact = false, showDate = false }) {
   return (
     <article
       className={compact ? "eventCard compact" : "eventCard"}
       style={{ borderLeftColor: event.color }}
     >
-      {!compact && (
+      {showDate && (
         <div className="eventDate">
           {event.start.toLocaleDateString("default", {
             weekday: "short",
             month: "short",
-            day: "numeric",
+            day: "numeric"
           })}
         </div>
       )}
@@ -259,13 +259,15 @@ function EventCard({ event, compact = false }) {
         <span>
           {event.start.toLocaleTimeString("default", {
             hour: "numeric",
-            minute: "2-digit",
+            minute: "2-digit"
           })}
         </span>
 
-        <span style={{ color: event.color }}>
-          {event.calendarName}
-        </span>
+        {event.calendarName && (
+          <span style={{ color: event.color }}>
+            {event.calendarName}
+          </span>
+        )}
       </div>
     </article>
   );
